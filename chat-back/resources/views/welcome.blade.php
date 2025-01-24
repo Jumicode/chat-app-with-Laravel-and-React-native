@@ -69,27 +69,46 @@
 
 
         <script>
-            $(function() {
-                let ip_address = '127.0.0.1';
-                let socket_port = '3000';
-                let socket = io(ip_address + ':' + socket_port);
+            $(function () {
+    let ip_address = '127.0.0.1';
+    let socket_port = '3000';
+    let socket = io(ip_address + ':' + socket_port);
 
-                let chatInput = $('#chatInput');
+    let chatInput = $('#chatInput');
+    let typingFeedback = $('<div id="typingFeedback" style="color: gray; font-style: italic;"></div>');
+    $('.chat-content').prepend(typingFeedback);
 
-                chatInput.keypress(function(e) {
-                    let message = $(this).html();
-                    console.log(message);
-                    if(e.which === 13 && !e.shiftKey) {
-                        socket.emit('sendChatToServer', message);
-                        chatInput.html('');
-                        return false;
-                    }
-                });
+    // Emitir evento de escritura mientras el usuario escribe
+    chatInput.on('input', function () {
+        let typingMessage = $(this).html();
+        socket.emit('typing', typingMessage); // Enviar lo que se está escribiendo
+    });
 
-                socket.on('sendChatToClient', (message) => {
-                    $('.chat-content ul').append(`<li>${message}</li>`);
-                });
-            });
+    // Enviar mensaje final al presionar Enter
+    chatInput.keypress(function (e) {
+        let message = $(this).html();
+        if (e.which === 13 && !e.shiftKey) {
+            socket.emit('sendChatToServer', message);
+            chatInput.html('');
+            return false;
+        }
+    });
+
+    // Mostrar el mensaje recibido en tiempo real
+    socket.on('sendChatToClient', (message) => {
+        $('.chat-content ul').append(`<li>${message}</li>`);
+    });
+
+    // Mostrar lo que el otro usuario está escribiendo
+    socket.on('updateTyping', (data) => {
+        if (data) {
+            $('#typingFeedback').text(`El otro usuario esta escribiendo : ${data}`);
+        } else {
+            $('#typingFeedback').text('');
+        }
+    });
+});
+
         </script>
     </body>
 </html>

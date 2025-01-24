@@ -22,11 +22,18 @@ io.on('connection', (socket) =>{
     socket.broadcast.emit('sendChatToClient',message);
  })
 
+ socket.on('typing', (data) => {
+    socket.broadcast.emit('updateTyping', data); // Retransmite la escritura al otro cliente
+});
+
 
     socket.on('disconnect', (socket) =>{
         console.log('Disconnect');
     });
 });
+
+
+
 
 server.listen(3000, () =>{
     console.log('Server is running');
